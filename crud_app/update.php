@@ -3,21 +3,7 @@ include 'config.php';
 
 $id = $_GET['id'];
 
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $name = $_POST['name'];
-    $address = $_POST['address'];
-    $salary = $_POST['salary'];
-
-    $sql = "UPDATE Employees SET Name='$name', Address='$address', Salary='$salary' WHERE id=$id";
-
-    if ($conn->query($sql) === TRUE) {
-        echo "Record updated successfully";
-    } else {
-        echo "Error updating record: " . $conn->error;
-    }
-
-    $conn->close();
-} else {
+if (isset($id)) {
     $sql = "SELECT * FROM Employees WHERE id=$id";
     $result = $conn->query($sql);
 
@@ -25,25 +11,33 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $row = $result->fetch_assoc();
     } else {
         echo "No employee found";
+        exit; 
     }
+} else {
+    echo "Invalid employee ID";
+    exit; 
+}
+
+if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["update"])) {
+    $id = $_POST["id"];
+    $name = $_POST["name"];
+    $address = $_POST["address"];
+    $salary = $_POST["salary"];
+
+    $update_sql = "UPDATE Employees SET Name='$name', Address='$address', Salary='$salary' WHERE id=$id";
+    if ($conn->query($update_sql) === TRUE) {
+        echo "Record updated successfully";
+    } else {
+        echo "Error updating record: " . $conn->error;
+    }
+    $conn->close();
+} else {
+    echo '<form method="post" action="update.php?id='.$id.'">
+            <input type="hidden" name="id" value="'.$row["id"].'">
+            Name: <input type="text" name="name" value="'.$row["Name"].'"><br>
+            Address: <input type="text" name="address" value="'.$row["Address"].'"><br>
+            Salary: <input type="text" name="salary" value="'.$row["Salary"].'"><br>
+            <input type="submit" name="update" value="Update">
+          </form>';
 }
 ?>
-
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Update Employee</title>
-</head>
-<body>
-    <h2>Update Employee</h2>
-    <form method="post" action="update.php?id=<?php echo $id; ?>">
-        <label for="name">Name:</label>
-        <input type="text" id="name" name="name" value="<?php echo $row['Name']; ?>" required><br><br>
-        <label for="address">Address:</label>
-        <input type="text" id="address" name="address" value="<?php echo $row['Address']; ?>" required><br><br>
-        <label for="salary">Salary:</label>
-        <input type="text" id="salary" name="salary" value="<?php echo $row['Salary']; ?>" required><br><br>
-        <input type="submit" value="Submit">
-    </form>
-</body>
-</html>
